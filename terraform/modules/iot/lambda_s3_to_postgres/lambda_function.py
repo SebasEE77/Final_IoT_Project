@@ -3,6 +3,8 @@ import logging
 import boto3
 import pg8000.native
 from botocore.exceptions import ClientError
+from urllib.parse import unquote_plus
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -44,9 +46,10 @@ def handler(event, context):
     s3 = boto3.client("s3")
 
     # Extraer bucket y key del evento de S3
+    # unquote_plus decodifica caracteres especiales en la key (ej. %3D -> =)
     record  = event["Records"][0]["s3"]
     bucket  = record["bucket"]["name"]
-    key     = record["object"]["key"]
+    key     = unquote_plus(record["object"]["key"])
 
     logger.info(f"Procesando archivo: s3://{bucket}/{key}")
 

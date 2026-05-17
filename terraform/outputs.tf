@@ -7,3 +7,8 @@ output "postgres_sg_id" {
   description = "ID del Security Group de PostgreSQL"
   value       = module.networking.postgres_sg_id
 }
+
+output "postgres_ip" {
+  description = "IP pública del servidor PostgreSQL"
+  value       = module.compute.postgres_ip
+}

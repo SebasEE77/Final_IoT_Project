@@ -21,8 +21,8 @@ sudo usermod -aG docker ec2-user
 
 # 5. Clonar el proyecto de GitHub
 cd /home/ec2-user
-git clone https://github.com/SebasEE77/Workers_Project.git proyecto
-cd proyecto
+git clone https://github.com/SebasEE77/Final_IoT_Project.git proyecto
+cd proyecto/terraform/modules/compute
 
 # 6. Correr la API
 sudo docker compose -f docker-compose-postgres.yml up -d --build
