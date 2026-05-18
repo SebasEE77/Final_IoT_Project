@@ -38,3 +38,13 @@ services:
     depends_on:
       - mosquitto
     restart: unless-stopped
+
+  # API FastAPI - disponible en http://localhost:8000
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: iot-api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

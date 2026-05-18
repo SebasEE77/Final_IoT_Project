@@ -36,3 +36,21 @@ clean: local-down aws-down
 	rm -rf edge_gateway/certs/*
 	rm -f edge_gateway/mosquitto.conf
 	@echo "Entorno limpio."
+
+# --- Comandos API (ECS) ---
+
+deploy-api:
+	chmod +x build_and_deploy.sh
+	./build_and_deploy.sh
+
+update-api:
+	@echo "Obteniendo Account ID..."
+	$(eval ACCOUNT_ID := $(shell aws sts get-caller-identity --query Account --output text))
+	$(eval REPO_URI := $(ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/iot-api-repo)
+	@echo "Construyendo y subiendo imagen actualizada..."
+	aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $(ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com
+	docker build -t iot-api-repo ./api
+	docker tag iot-api-repo:latest $(REPO_URI):latest
+	docker push $(REPO_URI):latest
+	@echo "Forzando reinicio de ECS..."
+	aws ecs update-service --cluster iot-api-cluster --service iot-api-service --force-new-deployment

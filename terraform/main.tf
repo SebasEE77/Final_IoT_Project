@@ -63,13 +63,19 @@ module "networking" {
   environment  = var.environment
 }
 
-# Módulo de Cómputo (EC2)
+# Módulo de Cómputo (EC2 / ECS / ECR / ALB / API Gateway)
 module "compute" {
-  source        = "./modules/compute"
-  project_name  = var.project_name
-  environment   = var.environment
-  ami_id        = var.ami_id
-  key_name      = var.key_name
-  subnet_id     = var.subnet_id
-  postgres_sg_id = module.networking.postgres_sg_id
+  source          = "./modules/compute"
+  project_name    = var.project_name
+  environment     = var.environment
+  ami_id          = var.ami_id
+  key_name        = var.key_name
+  subnet_id       = var.subnet_id
+  subnet_ids      = module.networking.subnet_ids
+  instance_type   = var.instance_type
+  postgres_sg_id  = module.networking.postgres_sg_id
+  alb_sg_id       = module.networking.alb_sg_id
+  ecs_tasks_sg_id = module.networking.ecs_tasks_sg_id
+  vpc_id          = module.networking.vpc_id
+  lab_role_arn    = data.aws_iam_role.lab_role.arn
 }

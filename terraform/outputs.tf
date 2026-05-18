@@ -12,3 +12,8 @@ output "postgres_ip" {
   description = "IP pública del servidor PostgreSQL"
   value       = module.compute.postgres_ip
 }
+
+output "api_gateway_url" {
+  description = "URL de la API Gateway"
+  value       = module.compute.api_gateway_url
+}
