@@ -24,7 +24,7 @@ def generate_sensor_data():
     """Genera un dato simulado para este sensor."""
     value = 0.0
     if SENSOR_TYPE == "temperature":
-        value = round(random.uniform(20.0, 35.0), 2)
+        value = round(random.uniform(25.0, 40.0), 2)
     elif SENSOR_TYPE == "humidity":
         value = round(random.uniform(40.0, 60.0), 2)
     else:
