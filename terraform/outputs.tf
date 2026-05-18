@@ -13,7 +13,7 @@ output "postgres_ip" {
   value       = module.compute.postgres_ip
 }
 
-output "api_gateway_url" {
-  description = "URL de la API Gateway"
-  value       = module.compute.api_gateway_url
+output "alb_dns_name" {
+  description = "URL de la API (DNS del Load Balancer)"
+  value       = "http://${module.compute.alb_dns_name}"
 }

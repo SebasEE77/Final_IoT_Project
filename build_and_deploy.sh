@@ -46,7 +46,12 @@ docker build -t $REPO_NAME ./api
 docker tag $REPO_NAME:latest $REPO_URI:latest
 docker push $REPO_URI:latest
 
-echo "=== 6. Desplegando infraestructura con Terraform ==="
+echo "=== 6. Instalando dependencias Lambda S3 -> PostgreSQL ==="
+
+pip install -r terraform/modules/iot/lambda_s3_to_postgres/requirements.txt \
+    -t terraform/modules/iot/lambda_s3_to_postgres/ --quiet
+
+echo "=== 7. Desplegando infraestructura con Terraform ==="
 cd terraform
 terraform init
 terraform apply -auto-approve

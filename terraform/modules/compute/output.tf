@@ -3,7 +3,7 @@ output "postgres_ip" {
   value       = aws_instance.postgres.public_ip
 }
 
-output "api_gateway_url" {
-  description = "URL de la API Gateway"
-  value       = "https://${aws_api_gateway_rest_api.api.id}.execute-api.us-east-1.amazonaws.com/prod"
+output "alb_dns_name" {
+  description = "DNS del Application Load Balancer para consumir la API"
+  value       = aws_lb.api_alb.dns_name
 }
