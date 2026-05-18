@@ -221,6 +221,7 @@ resource "aws_lambda_function" "s3_to_postgres" {
   runtime          = "python3.12"
   filename         = data.archive_file.lambda_s3_zip.output_path
   source_code_hash = data.archive_file.lambda_s3_zip.output_base64sha256
+  timeout          = 30
 }
 
 # Permiso para que S3 pueda invocar la Lambda cuando llegue un objeto nuevo.
