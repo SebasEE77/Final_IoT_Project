@@ -11,11 +11,11 @@ variable "environment" {
 }
 
 variable "vpc_id" {
-  default = "vpc-01c61f844cc2d6af0"
+  default = "vpc-0347dcdaa7bce104f"
 }
 
 variable "subnet_id" {
-  default = "subnet-0c0c3afd694782fed" #us-east-1a
+  default = "subnet-0015eacaa2b133769" #us-east-1a
 }
 
 variable "ami_id" {
