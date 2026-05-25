@@ -3,12 +3,20 @@ import os
 import boto3
 import pg8000.native
 from botocore.exceptions import ClientError
+from decimal import Decimal
+from pydantic import BaseModel
 
 app = FastAPI(
     title="IoT Sensor API",
     description="API unificada para consultar datos de sensores IoT",
     version="1.0.0"
 )
+
+class SensorIn(BaseModel):
+    device_id: str = "sensor-light-01"
+    sensor_type: str = "light"
+    value: float = 5000.0
+    timestamp: str = "2026-05-25T00:00:00Z"
 
 # Nombre de la tabla DynamoDB
 TABLE_NAME = os.environ.get("DYNAMODB_TABLE", "SensorData-lab")
@@ -60,7 +68,7 @@ def get_sensors():
     return {"sensors": items, "total": len(items)}
 
 @app.post("/sensors")
-def register_sensor(sensor: dict):
+def register_sensor(sensor: SensorIn):
     """
     Registra un nuevo sensor en DynamoDB.
     Recibe un JSON con device_id, sensor_type, value y timestamp.
@@ -68,17 +76,12 @@ def register_sensor(sensor: dict):
     dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
     table    = dynamodb.Table(TABLE_NAME)
 
-    required = ["device_id", "sensor_type", "value", "timestamp"]
-    for field in required:
-        if field not in sensor:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Campo requerido faltante: '{field}'"
-            )
+    item = sensor.model_dump()
+    item["value"] = Decimal(str(item["value"]))
+    
+    table.put_item(Item=item)
 
-    table.put_item(Item=sensor)
-
-    return {"mensaje": f"Sensor '{sensor['device_id']}' registrado correctamente", "sensor": sensor}
+    return {"mensaje": f"Sensor '{sensor.device_id}' registrado correctamente", "sensor": sensor}
 
 @app.get("/sensor/{device_id}/current")
 def get_current(device_id: str):
