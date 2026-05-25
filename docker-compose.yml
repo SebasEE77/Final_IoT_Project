@@ -39,6 +39,21 @@ services:
       - mosquitto
     restart: unless-stopped
 
+   # Sensor de Iluminacion
+  sensor_light_01:
+    build:
+      context: ./python_device
+      dockerfile: Dockerfile
+    container_name: sensor-light-01
+    environment:
+      - MQTT_HOST=mosquitto
+      - CLIENT_ID=sensor-light-01
+      - SENSOR_TYPE=light
+      - INTERVAL=6
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+
   # API FastAPI - disponible en http://localhost:8000
   api:
     build:

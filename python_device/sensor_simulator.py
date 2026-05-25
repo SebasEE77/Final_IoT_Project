@@ -27,6 +27,8 @@ def generate_sensor_data():
         value = round(random.uniform(25.0, 40.0), 2)
     elif SENSOR_TYPE == "humidity":
         value = round(random.uniform(40.0, 60.0), 2)
+    elif SENSOR_TYPE == "light":
+        value = round(random.uniform(1000.0, 80000.0), 2)
     else:
         value = round(random.uniform(0.0, 100.0), 2)
 

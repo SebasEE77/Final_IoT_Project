@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException
 import os
 import boto3
 import pg8000.native
-from fastapi import FastAPI, HTTPException
 from botocore.exceptions import ClientError
 
 app = FastAPI(
@@ -47,12 +46,44 @@ def get_db():
 def health_check():
     return {"status": "ok"}
 
+@app.get("/sensors")
+def get_sensors():
+    """
+    Lista todos los sensores existentes consultando DynamoDB.
+    """
+    dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
+    table    = dynamodb.Table(TABLE_NAME)
+
+    response = table.scan()
+    items    = response.get("Items", [])
+
+    return {"sensors": items, "total": len(items)}
+
+@app.post("/sensors")
+def register_sensor(sensor: dict):
+    """
+    Registra un nuevo sensor en DynamoDB.
+    Recibe un JSON con device_id, sensor_type, value y timestamp.
+    """
+    dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
+    table    = dynamodb.Table(TABLE_NAME)
+
+    required = ["device_id", "sensor_type", "value", "timestamp"]
+    for field in required:
+        if field not in sensor:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Campo requerido faltante: '{field}'"
+            )
+
+    table.put_item(Item=sensor)
+
+    return {"mensaje": f"Sensor '{sensor['device_id']}' registrado correctamente", "sensor": sensor}
+
 @app.get("/sensor/{device_id}/current")
 def get_current(device_id: str):
     """
     Obtiene el dato más reciente del sensor consultando DynamoDB.
-    DynamoDB sobrescribe siempre el mismo registro por device_id,
-    por lo que este endpoint siempre devuelve el valor en tiempo real.
     """
     dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
     table    = dynamodb.Table(TABLE_NAME)
@@ -97,3 +128,34 @@ def get_recent(device_id: str):
     ]
 
     return {"device_id": device_id, "events": events}
+
+@app.get("/sensor/{device_id}/history")
+def get_history(device_id: str):
+    """
+    Obtiene el histórico completo del sensor consultando PostgreSQL.
+    """
+    con = get_db()
+
+    rows = con.run(
+        "SELECT id, device_id, sensor_type, value, timestamp "
+        "FROM sensor_events "
+        "WHERE device_id = :device_id "
+        "ORDER BY timestamp DESC",
+        device_id=device_id
+    )
+
+    if not rows:
+        raise HTTPException(status_code=404, detail=f"No hay historial para '{device_id}'")
+
+    events = [
+        {
+            "id":          row[0],
+            "device_id":   row[1],
+            "sensor_type": row[2],
+            "value":       float(row[3]),
+            "timestamp":   str(row[4])
+        }
+        for row in rows
+    ]
+
+    return {"device_id": device_id, "total": len(events), "history": events}
