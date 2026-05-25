@@ -15,5 +15,5 @@ output "postgres_ip" {
 
 output "alb_dns_name" {
   description = "URL de la API (DNS del Load Balancer)"
-  value       = "http://${module.compute.alb_dns_name}"
+  value       = "http://${module.compute.alb_dns_name}/docs"
 }
