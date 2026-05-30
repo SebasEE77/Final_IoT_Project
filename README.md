@@ -54,7 +54,7 @@ graph TD
         L2 -->|Log de Urgencia| CW[CloudWatch Logs]
         
         S3 -->|Trigger ObjectCreated| L[AWS Lambda]
-        L -->|Lógica Histórico| MongoDB[(MongoDB\nHistórico)]
+        L -->|Lógica Histórico| MongoDB[(PostgreSQL\nHistórico)]
     end
 
     API -.->|GET /sensors| DDB
@@ -83,7 +83,7 @@ Para llegar a la Arquitectura Objetivo, debes completar los siguientes hitos usa
    - `POST /sensors`: Agrega un nuevo sensor.
    - `GET /sensor/{id}/current`: Obtiene el dato en tiempo real consultando **DynamoDB**.
    - `GET /sensor/{id}/recent`: Obtiene los últimos 10 eventos consultando **DynamoDB**.
-   - `GET /sensor/{id}/history`: Consulta el histórico completo en **MongoDB**.
+   - `GET /sensor/{id}/history`: Consulta el histórico completo en **PostgreSQL**.
 
 5. **Desplegar la API en ECS (AWS):**
    Contenedorizar la API con un `Dockerfile` y modificar la infraestructura (Terraform) para desplegarla en AWS Elastic Container Service (ECS), asegurando que corra en la nube en lugar de usar el `docker-compose.yml` local.
