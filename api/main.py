@@ -13,11 +13,13 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Modelo Pydantic para el registro de un sensor.
+# Los valores por defecto permiten que Swagger muestre un ejemplo listo para editar
 class SensorIn(BaseModel):
     device_id: str = "sensor-light-01"
     sensor_type: str = "light"
     value: float = 5000.0
-    timestamp: str = "2026-05-25T00:00:00Z"
+    timestamp: str = "2026-05-30T00:00:00Z"
 
 # Nombre de la tabla DynamoDB
 TABLE_NAME = os.environ.get("DYNAMODB_TABLE", "SensorData-lab")
@@ -63,10 +65,19 @@ def get_sensors():
     dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
     table    = dynamodb.Table(TABLE_NAME)
 
-    response = table.scan()
+    response = table.scan(
+        ProjectionExpression="device_id, sensor_type"
+    )
     items    = response.get("Items", [])
 
-    return {"sensors": items, "total": len(items)}
+    seen = set()
+    sensors = []
+    for item in items:
+        if item["device_id"] not in seen:
+            seen.add(item["device_id"])
+            sensors.append(item)
+
+    return {"sensors": sensors, "total": len(sensors)}
 
 @app.post("/sensors")
 def register_sensor(sensor: SensorIn):
