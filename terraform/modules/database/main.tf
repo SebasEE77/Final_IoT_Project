@@ -17,7 +17,6 @@ resource "aws_dynamodb_table" "sensor_data" {
     name = "timestamp"
     type = "S"
   }
-}
 
   tags = {
     Environment = var.environment
