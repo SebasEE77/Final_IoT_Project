@@ -54,6 +54,7 @@ pip install -r terraform/modules/iot/lambda_s3_to_postgres/requirements.txt \
 echo "=== 7. Desplegando infraestructura con Terraform ==="
 cd terraform
 terraform init
+terraform plan -out=project.tfplan
 terraform apply -auto-approve
 cd ..
 

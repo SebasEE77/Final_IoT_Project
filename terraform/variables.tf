@@ -11,11 +11,11 @@ variable "environment" {
 }
 
 variable "vpc_id" {
-  default = "vpc-0347dcdaa7bce104f"
+  default = "vpc-045e879bffc058c99"
 }
 
 variable "subnet_id" {
-  default = "subnet-0015eacaa2b133769" #us-east-1a
+  default = "subnet-05c29da48f77bf947" #us-east-1a
 }
 
 variable "ami_id" {
@@ -23,7 +23,7 @@ variable "ami_id" {
 }
 
 variable "key_name" {
-  default = "Projects"
+  default = "iot"
 }
 
 variable "instance_type" {

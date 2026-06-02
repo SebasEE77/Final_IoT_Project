@@ -189,6 +189,70 @@ resource "aws_lambda_permission" "iot_invoke_alert" {
   source_arn    = aws_iot_topic_rule.alert_rule.arn
 }
 
+
+# CONFIGURACIÓN DE LA COLA SQS
+resource "aws_sqs_queue" "lambda_queue" {
+  name                      = "my-lambda-queue"
+  delay_seconds             = 0
+  max_message_size          = 262144 #256KB, límite máximo absoluto que permite AWS SQS.
+  message_retention_seconds = 86400 # cuánto tiempo SQS guardará un mensaje en la cola 
+                                    # si ningún consumidor lo lee y lo elimina (1 dia en este caso).
+                                    # el mínimo es 60 segundos y el máximo es 14 días.
+  receive_wait_time_seconds = 0 # Configura si la cola usa Short Polling (encuestas cortas) 
+                                # o Long Polling (encuestas largas) por defecto.
+                                # 0 = Short Polling, >0 = Long Polling (en este caso 0)
+                                # Short Polling: cuando un consumidor pregunta "¿hay mensajes?", 
+                                # SQS responde inmediatamente; si no hay mensajes, responde vacío 
+                                # al instante.
+                                # Long Polling: cuando un consumidor pregunta "¿hay mensajes?", 
+                                # SQS espera hasta que haya mensajes o hasta que expire el 
+                                # receive_wait_time_seconds antes de responder.
+}
+
+# LAMBDA QUE SE DISPARA CON LOS EVENTOS DEL SQS
+# Empaqueta automaticamente lambda_consumer.py para subirlo a la lambda
+data "archive_file" "lambda_consumer_zip" {
+  type        = "zip"
+  source_file = "${path.module}/lambda_consumer/lambda_consumer.py"
+  output_path = "${path.module}/lambda_consumer.zip"
+}
+
+# Función Lambda que se disparará siempre que perciba eventos en SQS
+resource "aws_lambda_function" "sqs_consumer" {
+  function_name    = "SQS-consumer-${var.environment}"
+  role             = var.lab_role_arn
+  handler          = "lambda_consumer.lambda_handler"
+  runtime          = "python3.12"
+  filename         = data.archive_file.lambda_consumer_zip.output_path
+  source_code_hash = data.archive_file.lambda_consumer_zip.output_base64sha256
+
+  environment {
+    variables = {
+      QUEUE_URL = aws_sqs_queue.lambda_queue.url
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      filename,
+      source_code_hash,
+    ]
+  }
+}
+
+
+# Es como un supervisor para la cola. 
+# Revisa si hay mensajes en la cola y llama a la función lambda.
+resource "aws_lambda_event_source_mapping" "sqs_lambda_trigger" {
+  event_source_arn = aws_sqs_queue.lambda_queue.arn
+  function_name    = aws_lambda_function.sqs_consumer.arn
+  batch_size       = 10 # Si hay 10 mensajes en cola el supervisor llama a la funcion lambda 1 vez. 
+                        # por lo que la función lambda recibirá 10 mensajes en el parámetro 'event'.
+  enabled          = true
+}
+
+
+
 # Regla que escucha 'lab/sensors/data' pero solo procesa mensajes de
 # temperatura que superen 35 grados, disparando la Lambda de alerta.
 resource "aws_iot_topic_rule" "alert_rule" {
